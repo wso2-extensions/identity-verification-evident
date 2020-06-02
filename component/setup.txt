@@ -1,0 +1,19 @@
+Product: WSO2 Identity Server connector for Identity Verification with Evident.
+Pre-requisites:
+
+- Maven 3.x
+- Java 1.6 or above
+
+Tested Platform: 
+
+- Ubuntu 16.04
+- WSO2 IS 5.10.0
+- Java 1.8
+
+Do the following:
+
+Deploying and Configuring Evident Identity Verification:
+1.  Build the project & copy the org.wso2.carbon.identity.verification.evident.connector-***.jar file in
+component/org.wso2.carbon.identity.verification.evident.connector/target to <IS-HOME>/repository/components/dropins
+
+2.  Follow the steps in https://docs.wso2.com/display/ISCONNECTORS/Configuring+Evident+Identity+Verification
