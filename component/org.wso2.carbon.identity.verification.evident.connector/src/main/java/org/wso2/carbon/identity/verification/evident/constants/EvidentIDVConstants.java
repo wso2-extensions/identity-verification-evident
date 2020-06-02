@@ -29,5 +29,7 @@ public class EvidentIDVConstants {
 
     public static final String EVIDENT_API_PATH_VERIFY_REQUESTS = "api/v1/verify/requests";
     public static final String EVIDENT_VERIFICATION_ID_CLAIM_URI = "http://wso2.org/claims/identity/evidentRequestID";
+    public static final String FIRST_NAME_CLAIM_URI = "http://wso2.org/claims/givenname";
+    public static final String LAST_NAME_CLAIM_URI = "http://wso2.org/claims/lastname";
 
 }

@@ -82,6 +82,9 @@ click on **Create Account** to register a new user.
     ![Evident verification email](img/evident-idv-mail.png "Evident verification email")
 4. Complete the verification by clicking on the **Begin Now** button in the email and following the instructions 
 provided. 
+    - This version of the connector checks the validity of the US Driver's License of the user, and the First Name and
+     Last Name extracted from the Driver's License should match with the provided first name and last name when 
+     self registering. 
     - Please note that you'll need to have a valid US Driver's License for successful verification. You can 
     manually complete the verification for testing purposes, through Evident API, using the **userIdentityToken** 
     returned. This is printed in WSO2 Identity Server logs if debug logs are enabled for the connector.

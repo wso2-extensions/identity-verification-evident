@@ -60,6 +60,8 @@ import static org.wso2.carbon.identity.recovery.IdentityRecoveryConstants.SELF_S
 import static org.wso2.carbon.identity.verification.evident.constants.EvidentIDVConstants.EVIDENT_API_PATH_VERIFY_REQUESTS;
 import static org.wso2.carbon.identity.verification.evident.constants.EvidentIDVConstants.EVIDENT_VERIFICATION_ID_CLAIM_URI;
 import static org.wso2.carbon.identity.recovery.IdentityRecoveryConstants.PENDING_SELF_REGISTRATION;
+import static org.wso2.carbon.identity.verification.evident.constants.EvidentIDVConstants.FIRST_NAME_CLAIM_URI;
+import static org.wso2.carbon.identity.verification.evident.constants.EvidentIDVConstants.LAST_NAME_CLAIM_URI;
 import static org.wso2.carbon.user.core.UserCoreConstants.DEFAULT_PROFILE;
 
 /**
@@ -164,7 +166,9 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
         try {
             String evidentId = getEvidentId(userStoreManager, username);
             if (StringUtils.isNotEmpty(evidentId) && !evidentId.equals(NOT_ELIGIBLE)) {
-                if (getEvidentVerificationStatus(evidentId)) {
+                JSONObject response = getEvidentVerificationStatus(evidentId);
+
+                if (isUserVerified(response, username, userStoreManager)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Evident verification completed for the user: " + username);
                     }
@@ -174,6 +178,7 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                     userClaims.put(ACCOUNT_STATE_CLAIM_URI, ACCOUNT_STATE_UNLOCKED);
                     userStoreManager.setUserClaimValues(username, userClaims, DEFAULT_PROFILE);
                 } else {
+                    // TODO: 2020-06-03 Need to detect submitted but not verified status and prompt to re submit.
                     if (log.isDebugEnabled()) {
                         log.debug("User: " + username + " has not completed the identity verification with Evident.");
                     }
@@ -197,7 +202,7 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
         try {
             if (isVerifiableUser(eventProperties)) {
                 String email = userStoreManager.getUserClaimValue(username, EMAIL_ADDRESS_CLAIM, DEFAULT_PROFILE);
-                if (email == null) {
+                if (StringUtils.isEmpty(email)) {
                     log.warn("Evident identity verification is enabled but the email address was not found for " +
                             "the user: " + username);
                     return;
@@ -215,7 +220,7 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
         }
 
         try {
-            if (id != null) {
+            if (StringUtils.isNotEmpty(id)) {
                 HashMap<String, String> userClaims = new HashMap<>();
                 userClaims.put(ACCOUNT_LOCKED_CLAIM, Boolean.TRUE.toString());
                 userClaims.put(EVIDENT_VERIFICATION_ID_CLAIM_URI, id);
@@ -263,8 +268,8 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
         String accountLocked = claimValues.get(ACCOUNT_LOCKED_CLAIM);
         String accountState = claimValues.get(ACCOUNT_STATE_CLAIM_URI);
 
-        if (accountLocked == null || !accountLocked.equals(Boolean.TRUE.toString()) ||
-                accountState == null || !accountState.equals(PENDING_SELF_REGISTRATION)) {
+        if (StringUtils.isEmpty(accountLocked) || !accountLocked.equals(Boolean.TRUE.toString()) ||
+                StringUtils.isEmpty(accountState) || !accountState.equals(PENDING_SELF_REGISTRATION)) {
             return NOT_ELIGIBLE;
         } else {
             return claimValues.get(EVIDENT_VERIFICATION_ID_CLAIM_URI);
@@ -354,7 +359,7 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
      * @return True if verification completed, False otherwise.
      * @throws EvidentAPIException If any errors occurred.
      */
-    private boolean getEvidentVerificationStatus(String verifyId) throws EvidentAPIException {
+    private JSONObject getEvidentVerificationStatus(String verifyId) throws EvidentAPIException {
 
         String urlPath = basePath + "/" + EVIDENT_API_PATH_VERIFY_REQUESTS + "/" + verifyId;
         HttpURLConnection con = null;
@@ -388,30 +393,65 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
             }
         }
 
-        JSONObject object = new JSONObject(response);
-        return isUserVerified(object);
+        return new JSONObject(response);
     }
 
     /**
-     * Checks whether the required verifications are completed.
+     * Checks whether the required verifications are completed for the user.
      *
-     * @param responseJSON API Response.
-     * @return True if checks are passed.
+     * @param responseJSON responseJSON API Response.
+     * @param username Username of the user.
+     * @param userStoreManager User store manager object to pull user claims.
+     * @return True if all checks are passed, False otherwise.
+     * @throws UserStoreException If any error.
      */
-    private boolean isUserVerified(JSONObject responseJSON) {
+    private boolean isUserVerified(JSONObject responseJSON, String username, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
-        // TODO: 2020-05-30 Should be allowed to customize from UI
+        // TODO: 2020-05-30 Should be allowed to customize from the UI
+        boolean isDLValid = false;
+        boolean isFullnameValid = false;
         JSONArray attributes = responseJSON.getJSONArray("attributes");
         for (int i = 0; i < attributes.length(); i++) {
             JSONObject attribute = attributes.getJSONObject(i);
             String type = attribute.getString("type");
             if (type.equals("identity_assurance.document_verification.americas.us.drivers_license" +
                     ".verification_status") && attribute.has("values")) {
+                // Check validity of the DL
                 JSONArray values = attribute.getJSONArray("values");
-                return values.getString(0).equals("Valid");
+                isDLValid = values.getString(0).equals("Valid");
+            } else if (type.equals("core.fullname")) {
+                // Check full name
+                if (attribute.getString("status").equals("shared")) {
+                    JSONArray values = attribute.getJSONArray("values");
+                    String firstName = values.getJSONObject(0).getString("first");
+                    String lastName = values.getJSONObject(0).getString("last");
+
+                    Map<String, String> claimValues = userStoreManager.getUserClaimValues(username,
+                            new String[]{
+                                    FIRST_NAME_CLAIM_URI,
+                                    LAST_NAME_CLAIM_URI
+                            }, DEFAULT_PROFILE);
+
+                    if (firstName.equals(claimValues.get(FIRST_NAME_CLAIM_URI))
+                            && lastName.equals(claimValues.get(LAST_NAME_CLAIM_URI))) {
+                        isFullnameValid = true;
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Evident verified first name and last name doesn't match with the provided " +
+                                    "values for the user: " + username);
+                        }
+                    }
+
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Evident verification error for the user: " + username + " core.fullname status " +
+                                "is:" + attribute.getString("status"));
+                    }
+                }
             }
         }
-        return false;
+        return isDLValid && isFullnameValid;
     }
 
     /**
