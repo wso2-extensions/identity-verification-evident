@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
-        <version>1</version>
+        <version>1.2</version>
     </parent>
 
     <groupId>org.wso2.carbon.identity.verification</groupId>
@@ -127,10 +127,10 @@
     </dependencyManagement>
 
     <scm>
-        <connection>scm:git:https://github.com/wso2-extensions/identity-outbound-auth-passwordpolicy.git</connection>
-        <url>https://github.com/wso2-extensions/identity-outbound-auth-passwordpolicy.git</url>
+        <connection>scm:git:https://github.com/wso2-extensions/identity-verification-evident.git</connection>
+        <url>https://github.com/wso2-extensions/identity-verification-evident.git</url>
         <developerConnection>
-            scm:git:https://github.com/wso2-extensions/identity-outbound-auth-passwordpolicy
+            scm:git:https://github.com/wso2-extensions/identity-verification-evident
         </developerConnection>
         <tag>HEAD</tag>
     </scm>
@@ -344,6 +344,7 @@
         <carbon.identity.framework.version>5.17.5</carbon.identity.framework.version>
         <carbon.identity.governance.version>1.4.1</carbon.identity.governance.version>
         <commons-logging.version>4.4.23</commons-logging.version>
+        <apache.commons.logging.version>1.0.4</apache.commons.logging.version>
         <carbon.kernel.version>4.6.0</carbon.kernel.version>
         <testng.version>6.9.10</testng.version>
         <jacoco.version>0.7.9</jacoco.version>

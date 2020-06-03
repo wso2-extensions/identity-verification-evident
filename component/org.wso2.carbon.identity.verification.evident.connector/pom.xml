@@ -126,7 +126,7 @@
                         </Export-Package>
                         <Import-Package>
                             org.wso2.carbon.identity.mgt.*; version="${carbon.identity.package.import.version.range}",
-                            org.apache.commons.logging.*; version="1.0.4",
+                            org.apache.commons.logging.*; version="${apache.commons.logging.version}",
                             org.osgi.framework,
                             org.wso2.carbon.identity.application.authentication.framework.*,
                             javax.servlet,

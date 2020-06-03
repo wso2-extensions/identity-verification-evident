@@ -69,17 +69,15 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
 
     public static final Log log = LogFactory.getLog(EvidentIDVHandler.class);
     public static final String NOT_ELIGIBLE = "NOT_ELIGIBLE";
+    public static final String COMMA_WITH_SPACES_REGEX = "\\s*,\\s*";
 
+    private boolean enabled = false;
     private String key;
     private String secret;
     private String basePath;
     private String emailSummary = "";
     private String emailDescription = "";
     private String userStores;
-
-    public EvidentIDVHandler() {
-
-    }
 
     public void handleEvent(Event event) throws IdentityEventException {
 
@@ -98,7 +96,42 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
             throw new IdentityEventException("Error while retrieving account lock handler properties.", e);
         }
 
-        boolean enabled = false;
+        readHandlerProperties(identityProperties);
+
+        if (enabled) {
+            // Property validation
+            if (StringUtils.isEmpty(key) || StringUtils.isEmpty(secret) || StringUtils.isEmpty(basePath)) {
+                log.warn("Evident identity verification is enabled but one or more required parameters are not " +
+                        "provided");
+                return;
+            }
+
+            // Validate user store
+            if (StringUtils.isNotEmpty(userStores)) {
+                List userStoreList = Arrays.asList(userStores.trim().split(COMMA_WITH_SPACES_REGEX));
+                String currentUserStore = userStoreManager.getRealmConfiguration().getUserStoreProperties().get(
+                        UserStoreConfigConstants.DOMAIN_NAME);
+                if (!userStoreList.contains(currentUserStore)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Evident Identity Handler hit. Returning since the user store: " +
+                                currentUserStore + " is not engaged in Evident identity verification.");
+                    }
+                    return;
+                }
+            }
+
+            if (IdentityEventConstants.Event.PRE_AUTHENTICATION.equals(event.getEventName())) {
+                handlePreAuthenticationEvent(username, userStoreManager);
+            } else if (IdentityEventConstants.Event.POST_ADD_USER.equals(event.getEventName())) {
+                handlePostAddUserEvent(username, userStoreManager, eventProperties);
+            }
+        }
+    }
+
+    /**
+     * Reads handler properties from the identity properties object.
+     */
+    private void readHandlerProperties(Property[] identityProperties) {
 
         for (Property property : identityProperties) {
             if (EvidentIDVConstants.EVIDENT_VERIFICATION_ENABLE.equals(property.getName())) {
@@ -123,35 +156,6 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                 emailDescription = property.getValue();
             }
         }
-
-        if (enabled) {
-            // Property validation
-            if (StringUtils.isEmpty(key) || StringUtils.isEmpty(secret) || StringUtils.isEmpty(basePath)) {
-                log.warn("Evident identity verification is enabled but one or more required parameters are not " +
-                        "provided");
-                return;
-            }
-
-            // Validate user store
-            if (StringUtils.isNotEmpty(userStores)) {
-                List userStoreList = Arrays.asList(userStores.trim().split("\\s*,\\s*"));
-                String currentUserStore = userStoreManager.getRealmConfiguration().getUserStoreProperties().get(
-                        UserStoreConfigConstants.DOMAIN_NAME);
-                if (!userStoreList.contains(currentUserStore)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("User: " + username + " is trying to login. Returning since the user store: " +
-                                currentUserStore + " is not engaged in Evident identity verification.");
-                    }
-                    return;
-                }
-            }
-
-            if (IdentityEventConstants.Event.PRE_AUTHENTICATION.equals(event.getEventName())) {
-                handlePreAuthenticationEvent(username, userStoreManager);
-            } else if (IdentityEventConstants.Event.POST_ADD_USER.equals(event.getEventName())) {
-                handlePostAddUserEvent(username, userStoreManager, eventProperties);
-            }
-        }
     }
 
     private void handlePreAuthenticationEvent(String username, UserStoreManager userStoreManager)
@@ -159,7 +163,7 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
 
         try {
             String evidentId = getEvidentId(userStoreManager, username);
-            if (evidentId != null && !evidentId.equals(NOT_ELIGIBLE)) {
+            if (StringUtils.isNotEmpty(evidentId) && !evidentId.equals(NOT_ELIGIBLE)) {
                 if (getEvidentVerificationStatus(evidentId)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Evident verification completed for the user: " + username);
@@ -171,10 +175,10 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                     userStoreManager.setUserClaimValues(username, userClaims, DEFAULT_PROFILE);
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("Evident verification is not yet completed for the user: " + username);
+                        log.debug("User: " + username + " has not completed the identity verification with Evident.");
                     }
                 }
-            } else if (evidentId == null) {
+            } else if (StringUtils.isEmpty(evidentId)) {
                 log.warn("User: " + username + " is eligible for Evident identity verification but the Evident " +
                         "ID couldn't be found.");
             }
