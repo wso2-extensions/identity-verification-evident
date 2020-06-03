@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.governance.IdentityGovernanceService;
  */
 public class EvidentIDVDataHolder {
 
-    private static EvidentIDVDataHolder instance;
+    private static final EvidentIDVDataHolder instance = new EvidentIDVDataHolder();
 
     private IdentityGovernanceService identityGovernanceService;
 
@@ -38,9 +38,6 @@ public class EvidentIDVDataHolder {
      */
     public static EvidentIDVDataHolder getInstance() {
 
-        if (instance == null) {
-            instance = new EvidentIDVDataHolder();
-        }
         return instance;
     }
 

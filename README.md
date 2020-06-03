@@ -1,5 +1,7 @@
 # Identity Verification with Evident
 
+![Evident IDV Connector](docs/img/evident-connector-logo.png "Evident IDV Connector")
+
 Identity Verification has been a popular concept for over a decade now, and when simply put, it's about verifying 
 the identity of an online user. In other words, figuring out whether the person submitting the information is 
 actually who they claim to be or not. There are many companies in the world that offer identity verification as a 
