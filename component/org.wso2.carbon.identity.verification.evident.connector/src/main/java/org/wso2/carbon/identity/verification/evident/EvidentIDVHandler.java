@@ -109,10 +109,10 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
             }
 
             // Validate user store
+            String currentUserStore = userStoreManager.getRealmConfiguration().getUserStoreProperties().get(
+                    UserStoreConfigConstants.DOMAIN_NAME);
             if (StringUtils.isNotEmpty(userStores)) {
                 List userStoreList = Arrays.asList(userStores.trim().split(COMMA_WITH_SPACES_REGEX));
-                String currentUserStore = userStoreManager.getRealmConfiguration().getUserStoreProperties().get(
-                        UserStoreConfigConstants.DOMAIN_NAME);
                 if (!userStoreList.contains(currentUserStore)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Evident Identity Handler hit. Returning since the user store: " +
@@ -120,6 +120,20 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                     }
                     return;
                 }
+            }
+
+            // Check existence of the user in the user store
+            try {
+                if (!userStoreManager.isExistingUser(username)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Evident Identity Handler hit. Returning since the user: " + username + " couldn't " +
+                                "be found in the user store: " + currentUserStore);
+                    }
+                    return;
+                }
+            } catch (UserStoreException e) {
+                throw new EvidentIDVHandlerException("Error while checking the existence of the user: " + username +
+                        " in the user store: " + currentUserStore);
             }
 
             if (IdentityEventConstants.Event.PRE_AUTHENTICATION.equals(event.getEventName())) {
