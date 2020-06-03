@@ -182,19 +182,6 @@
 
         <pluginManagement>
             <plugins>
-<!--                <plugin>-->
-<!--                    <groupId>org.apache.felix</groupId>-->
-<!--                    <artifactId>maven-scr-plugin</artifactId>-->
-<!--                    <version>${maven.scr.plugin.version}</version>-->
-<!--                    <executions>-->
-<!--                        <execution>-->
-<!--                            <id>generate-scr-scrdescriptor</id>-->
-<!--                            <goals>-->
-<!--                                <goal>scr</goal>-->
-<!--                            </goals>-->
-<!--                        </execution>-->
-<!--                    </executions>-->
-<!--                </plugin>-->
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
@@ -351,8 +338,6 @@
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
         <carbon.analytics-common.version>5.1.31</carbon.analytics-common.version>
-        <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
-        <org.apache.felix.scr.ds.annotations.version>1.2.8</org.apache.felix.scr.ds.annotations.version>
         <carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
     </properties>
