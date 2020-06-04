@@ -127,7 +127,8 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                 if (!userStoreManager.isExistingUser(username)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Evident Identity Handler hit. Returning since the user: " + username + " couldn't " +
-                                "be found in the user store: " + currentUserStore);
+                                "be found in the user store: " + currentUserStore
+                        );
                     }
                     return;
                 }
@@ -438,8 +439,8 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                 // Check full name
                 if (attribute.getString("status").equals("shared")) {
                     JSONArray values = attribute.getJSONArray("values");
-                    String firstName = values.getJSONObject(0).getString("first");
-                    String lastName = values.getJSONObject(0).getString("last");
+                    String firstName = values.getJSONObject(0).getString("first").toLowerCase();
+                    String lastName = values.getJSONObject(0).getString("last").toLowerCase();
 
                     Map<String, String> claimValues = userStoreManager.getUserClaimValues(username,
                             new String[]{
@@ -447,8 +448,8 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                                     LAST_NAME_CLAIM_URI
                             }, DEFAULT_PROFILE);
 
-                    if (firstName.equals(claimValues.get(FIRST_NAME_CLAIM_URI))
-                            && lastName.equals(claimValues.get(LAST_NAME_CLAIM_URI))) {
+                    if (firstName.equals(claimValues.get(FIRST_NAME_CLAIM_URI).toLowerCase())
+                            && lastName.equals(claimValues.get(LAST_NAME_CLAIM_URI).toLowerCase())) {
                         isFullnameValid = true;
                     } else {
                         if (log.isDebugEnabled()) {
