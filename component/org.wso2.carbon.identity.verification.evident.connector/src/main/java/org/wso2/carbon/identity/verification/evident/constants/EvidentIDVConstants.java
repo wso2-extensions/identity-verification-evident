@@ -32,4 +32,5 @@ public class EvidentIDVConstants {
     public static final String FIRST_NAME_CLAIM_URI = "http://wso2.org/claims/givenname";
     public static final String LAST_NAME_CLAIM_URI = "http://wso2.org/claims/lastname";
 
+    public static final String VERIFICATION_FAILED_ERROR_CODE = "17010";
 }
