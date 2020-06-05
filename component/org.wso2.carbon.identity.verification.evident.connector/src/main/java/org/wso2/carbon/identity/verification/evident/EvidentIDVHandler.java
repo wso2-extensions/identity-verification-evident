@@ -140,7 +140,7 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                         " in the user store: " + currentUserStore);
             }
 
-            if (IdentityEventConstants.Event.PRE_AUTHENTICATION.equals(event.getEventName())) {
+            if (IdentityEventConstants.Event.POST_AUTHENTICATION.equals(event.getEventName())) {
                 handlePreAuthenticationEvent(username, userStoreManager);
             } else if (IdentityEventConstants.Event.POST_ADD_USER.equals(event.getEventName())) {
                 handlePostAddUserEvent(username, userStoreManager, eventProperties);
