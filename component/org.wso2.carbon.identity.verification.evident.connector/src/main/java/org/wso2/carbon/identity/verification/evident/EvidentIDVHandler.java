@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
@@ -117,10 +118,6 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
             if (StringUtils.isNotEmpty(userStores)) {
                 List userStoreList = Arrays.asList(userStores.trim().split(COMMA_WITH_SPACES_REGEX));
                 if (!userStoreList.contains(currentUserStore)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Evident Identity Handler hit. Returning since the user store: " +
-                                currentUserStore + " is not engaged in Evident identity verification.");
-                    }
                     return;
                 }
             }
@@ -128,11 +125,6 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
             // Check existence of the user in the user store
             try {
                 if (!userStoreManager.isExistingUser(username)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Evident Identity Handler hit. Returning since the user: " + username + " couldn't " +
-                                "be found in the user store: " + currentUserStore
-                        );
-                    }
                     return;
                 }
             } catch (UserStoreException e) {
@@ -533,6 +525,19 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
     public int getOrder() {
 
         return 50;
+    }
+
+    @Override
+    public int getPriority(MessageContext messageContext) {
+
+        int priority = super.getPriority(messageContext);
+        if (priority == -1) {
+            priority = -2;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Returning Evident IDV handler priority: " + priority);
+        }
+        return priority;
     }
 
     @Override
