@@ -26,7 +26,7 @@ the correct version of the [Identity Server](https://wso2.com/identity-and-acces
     ```$xslt
     [[event_handler]]
     name = "evidentEventHandler"
-    subscriptions =["POST_ADD_USER", "PRE_AUTHENTICATION"]
+    subscriptions =["POST_ADD_USER", "POST_AUTHENTICATION"]
     ```
 4. (Optional Step) For additional debugging purposes, you can enable debug logs for the connector. Add the following 
 configurations to the ```<IS-HOME>/repository/conf/log4j2.properties``` file.

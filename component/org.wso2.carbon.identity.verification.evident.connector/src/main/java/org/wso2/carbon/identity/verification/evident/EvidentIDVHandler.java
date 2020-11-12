@@ -24,6 +24,9 @@ import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
+import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
@@ -31,9 +34,9 @@ import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
 import org.wso2.carbon.identity.verification.evident.constants.EvidentIDVConstants;
-import org.wso2.carbon.identity.verification.evident.exception.EvidentAPIException;
 import org.wso2.carbon.identity.verification.evident.exception.EvidentIDVHandlerException;
 import org.wso2.carbon.identity.verification.evident.internal.EvidentIDVDataHolder;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreConfigConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -62,6 +65,7 @@ import static org.wso2.carbon.identity.verification.evident.constants.EvidentIDV
 import static org.wso2.carbon.identity.recovery.IdentityRecoveryConstants.PENDING_SELF_REGISTRATION;
 import static org.wso2.carbon.identity.verification.evident.constants.EvidentIDVConstants.FIRST_NAME_CLAIM_URI;
 import static org.wso2.carbon.identity.verification.evident.constants.EvidentIDVConstants.LAST_NAME_CLAIM_URI;
+import static org.wso2.carbon.identity.verification.evident.constants.EvidentIDVConstants.VERIFICATION_FAILED_ERROR_CODE;
 import static org.wso2.carbon.user.core.UserCoreConstants.DEFAULT_PROFILE;
 
 /**
@@ -109,20 +113,26 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
             }
 
             // Validate user store
+            String currentUserStore = userStoreManager.getRealmConfiguration().getUserStoreProperties().get(
+                    UserStoreConfigConstants.DOMAIN_NAME);
             if (StringUtils.isNotEmpty(userStores)) {
                 List userStoreList = Arrays.asList(userStores.trim().split(COMMA_WITH_SPACES_REGEX));
-                String currentUserStore = userStoreManager.getRealmConfiguration().getUserStoreProperties().get(
-                        UserStoreConfigConstants.DOMAIN_NAME);
                 if (!userStoreList.contains(currentUserStore)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Evident Identity Handler hit. Returning since the user store: " +
-                                currentUserStore + " is not engaged in Evident identity verification.");
-                    }
                     return;
                 }
             }
 
-            if (IdentityEventConstants.Event.PRE_AUTHENTICATION.equals(event.getEventName())) {
+            // Check existence of the user in the user store
+            try {
+                if (!userStoreManager.isExistingUser(username)) {
+                    return;
+                }
+            } catch (UserStoreException e) {
+                throw new EvidentIDVHandlerException("Error while checking the existence of the user: " + username +
+                        " in the user store: " + currentUserStore);
+            }
+
+            if (IdentityEventConstants.Event.POST_AUTHENTICATION.equals(event.getEventName())) {
                 handlePreAuthenticationEvent(username, userStoreManager);
             } else if (IdentityEventConstants.Event.POST_ADD_USER.equals(event.getEventName())) {
                 handlePostAddUserEvent(username, userStoreManager, eventProperties);
@@ -196,7 +206,7 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
 
     private void handlePostAddUserEvent(String username, UserStoreManager userStoreManager,
                                         Map<String, Object> eventProperties)
-            throws EvidentAPIException, EvidentIDVHandlerException {
+            throws EvidentIDVHandlerException {
 
         String id;
         try {
@@ -281,9 +291,9 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
      *
      * @param email Email of the user.
      * @return Verify Id of the request
-     * @throws EvidentAPIException if any errors occurred.
+     * @throws EvidentIDVHandlerException if any errors occurred.
      */
-    private String sendEvidentVerificationRequest(String email) throws EvidentAPIException {
+    private String sendEvidentVerificationRequest(String email) throws EvidentIDVHandlerException {
 
         String urlPath = basePath + "/" + EVIDENT_API_PATH_VERIFY_REQUESTS;
         HttpURLConnection con = null;
@@ -327,12 +337,12 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
 
             int status = con.getResponseCode();
             if (status != 200) {
-                throw new EvidentAPIException("Evident API error. Error code: " + con.getResponseCode() + " Error " +
-                        "message: " + response);
+                throw new EvidentIDVHandlerException("Evident API error. Error code: " + con.getResponseCode() + 
+                        " Error message: " + response);
             }
 
         } catch (IOException e) {
-            throw new EvidentAPIException("Error while sending Evident verify request. ", e);
+            throw new EvidentIDVHandlerException("Error while sending Evident verify request. ", e);
         } finally {
             if (con != null) {
                 con.disconnect();
@@ -357,9 +367,9 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
      *
      * @param verifyId Verify request ID.
      * @return True if verification completed, False otherwise.
-     * @throws EvidentAPIException If any errors occurred.
+     * @throws EvidentIDVHandlerException If any errors occurred.
      */
-    private JSONObject getEvidentVerificationStatus(String verifyId) throws EvidentAPIException {
+    private JSONObject getEvidentVerificationStatus(String verifyId) throws EvidentIDVHandlerException {
 
         String urlPath = basePath + "/" + EVIDENT_API_PATH_VERIFY_REQUESTS + "/" + verifyId;
         HttpURLConnection con = null;
@@ -381,12 +391,12 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
 
             int status = con.getResponseCode();
             if (status != 200) {
-                throw new EvidentAPIException("Error status returned from the Evident API. Error code: " +
+                throw new EvidentIDVHandlerException("Error status returned from the Evident API. Error code: " +
                         con.getResponseCode() + " Error message: " + response);
             }
 
         } catch (IOException e) {
-            throw new EvidentAPIException("Error occurred while sending Evident API request. ", e);
+            throw new EvidentIDVHandlerException("Error occurred while sending Evident API request. ", e);
         } finally {
             if (con != null) {
                 con.disconnect();
@@ -406,7 +416,7 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
      * @throws UserStoreException If any error.
      */
     private boolean isUserVerified(JSONObject responseJSON, String username, UserStoreManager userStoreManager)
-            throws UserStoreException {
+            throws UserStoreException, EvidentIDVHandlerException {
 
         // TODO: 2020-05-30 Should be allowed to customize from the UI
         boolean isDLValid = false;
@@ -424,8 +434,8 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                 // Check full name
                 if (attribute.getString("status").equals("shared")) {
                     JSONArray values = attribute.getJSONArray("values");
-                    String firstName = values.getJSONObject(0).getString("first");
-                    String lastName = values.getJSONObject(0).getString("last");
+                    String firstName = values.getJSONObject(0).getString("first").toLowerCase();
+                    String lastName = values.getJSONObject(0).getString("last").toLowerCase();
 
                     Map<String, String> claimValues = userStoreManager.getUserClaimValues(username,
                             new String[]{
@@ -433,14 +443,20 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
                                     LAST_NAME_CLAIM_URI
                             }, DEFAULT_PROFILE);
 
-                    if (firstName.equals(claimValues.get(FIRST_NAME_CLAIM_URI))
-                            && lastName.equals(claimValues.get(LAST_NAME_CLAIM_URI))) {
+                    if (firstName.equals(claimValues.get(FIRST_NAME_CLAIM_URI).toLowerCase())
+                            && lastName.equals(claimValues.get(LAST_NAME_CLAIM_URI).toLowerCase())) {
                         isFullnameValid = true;
                     } else {
                         if (log.isDebugEnabled()) {
                             log.debug("Evident verified first name and last name doesn't match with the provided " +
                                     "values for the user: " + username);
                         }
+                        String msg = "Evident identity verification failed for your account. Please contact " +
+                                "administration.";
+                        IdentityErrorMsgContext customErrorMessageContext =
+                                new IdentityErrorMsgContext(VERIFICATION_FAILED_ERROR_CODE + ":" + msg);
+                        IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
+                        throw new EvidentIDVHandlerException(UserCoreConstants.ErrorCode.USER_IS_LOCKED, msg);
                     }
 
                 } else {
@@ -509,6 +525,19 @@ public class EvidentIDVHandler extends AbstractEventHandler implements IdentityC
     public int getOrder() {
 
         return 50;
+    }
+
+    @Override
+    public int getPriority(MessageContext messageContext) {
+
+        int priority = super.getPriority(messageContext);
+        if (priority == -1) {
+            priority = -2;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Returning Evident IDV handler priority: " + priority);
+        }
+        return priority;
     }
 
     @Override

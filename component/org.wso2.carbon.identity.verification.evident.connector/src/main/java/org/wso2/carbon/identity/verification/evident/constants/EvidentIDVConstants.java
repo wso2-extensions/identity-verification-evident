@@ -21,7 +21,7 @@ public class EvidentIDVConstants {
 
     public static final String EVIDENT_VERIFICATION_ENABLE = "evidentVerify.enable";
     public static final String EVIDENT_API_KEY = "evidentVerify.api.key";
-    public static final String EVIDENT_API_SECRET = "evidentVerify.api.secret";
+    public static final String EVIDENT_API_SECRET = "__secret__evidentVerify.api.secret";
     public static final String EVIDENT_API_BASE_PATH = "evidentVerify.api.base.path";
     public static final String EVIDENT_EMAIL_SUMMARY = "evidentVerify.email.summary";
     public static final String EVIDENT_EMAIL_DESCRIPTION = "evidentVerify.email.description";
@@ -32,4 +32,5 @@ public class EvidentIDVConstants {
     public static final String FIRST_NAME_CLAIM_URI = "http://wso2.org/claims/givenname";
     public static final String LAST_NAME_CLAIM_URI = "http://wso2.org/claims/lastname";
 
+    public static final String VERIFICATION_FAILED_ERROR_CODE = "17010";
 }
