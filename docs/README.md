@@ -59,8 +59,8 @@ configurations to the ```<IS-HOME>/repository/conf/log4j2.properties``` file.
     - Enable Identity Verification: Check the checkbox to enable the connector.
     - API Base Path: Specify the Evident API base path. Check 
     [Evident API documentation](https://www.evidentid.com/api-documentation-developers/) for more info.
-    - API Key: Add the API key (username) obtained from Evident.
-    - API Secret: Add the API secret obtained from Evident.
+    - API Key: Add `Account name` obtained from Evident as the API key.
+    - API Secret: Add the API key obtained from Evident as the API Secret.
     - Verification Email Summary: This is the summary of the email that will be sent to the user by Evident. The value 
     will be appended to the default text. Ex: **Action Required to Complete Your [Summary]**.
     - Verification Email Description: This will appear in the verification email as the description.
