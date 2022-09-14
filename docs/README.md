@@ -15,7 +15,7 @@ finished, IS will unlock the user account and let the user login.
 ## Prerequisites
 1. You need to have Evident API credentials for this connector to work. Please 
 [contact](https://www.evidentid.com/contact-sales/) the Evident team and they will be happy to help.
-2. This version of the connector is tested with WSO2 Identity Server version 5.10.0. Make sure to download and set up 
+2. This version of the connector is tested with WSO2 Identity Server version 6.0.0. Make sure to download and set up 
 the correct version of the [Identity Server](https://wso2.com/identity-and-access-management) on your environment.
 
 ## Installing the Connector
@@ -69,12 +69,12 @@ configurations to the ```<IS-HOME>/repository/conf/log4j2.properties``` file.
     be applied to all the user stores.
     ![Configure Evident Connector](img/configure-evident-connector-settings.png "Configure Evident Connector")
 7. Since the identity verification is engaged in user self-registration, we need to enable that too. Expand the 
-**User Self Registration** section and check **Enable Self User Registration** checkbox. Make sure that the 
-**Internal Notification Management** is not checked since Evident is handling the notification sending.
+**Self Registration** section under **User Onboarding** and check **User self registration** checkbox. Make sure that the 
+**Manage notifications sending internally** is not checked since Evident is handling the notification sending.
 8. Click on **Update** to save the configurations.
 
 ## Testing
-1. Visit the [WSO2 Identity Server User-Portal](https://localhost:9443/user-portal/) and in the Sign In page, 
+1. Visit the [WSO2 Identity Server My Account](https://localhost:9443/myaccount/) and in the Sign In page, 
 click on **Create Account** to register a new user.
 2. Complete the form and click on the register button. Make sure to enter a valid email address that you have access to.
 3. Try to login to the newly created user account. The server should say that the account is not verified yet.
