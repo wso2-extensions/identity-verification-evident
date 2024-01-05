@@ -259,7 +259,7 @@
     </distributionManagement>
 
     <properties>
-        <carbon.identity.framework.version>5.17.5</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.20.254</carbon.identity.framework.version>
         <carbon.identity.governance.version>1.4.1</carbon.identity.governance.version>
         <commons-logging.version>4.4.23</commons-logging.version>
         <apache.commons.logging.version>1.0.4</apache.commons.logging.version>
