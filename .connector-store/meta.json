@@ -1,0 +1,10 @@
+{
+    "name": "Evident Identity Verification",
+    "owner": "WSO2",
+    "category": "Identity Verification",
+    "documentationUrl": "https://github.com/wso2-extensions/identity-verification-evident/tree/v1.0.0/docs",
+    "description": "Evident is a leading and award-winning Identity Verification provider in the industry that provides over 12,000 verifiable data types along with ID scans that cover over 195 countries. With this connector, we're connecting WSO2 Identity Server with Evident for external identity verifications that allow you to verify the identities of your users.",
+    "status": "Active",
+    "labels": [],
+    "releases": []
+}
