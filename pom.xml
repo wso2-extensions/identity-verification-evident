@@ -269,7 +269,7 @@
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
         <carbon.analytics-common.version>5.1.31</carbon.analytics-common.version>
-        <carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
+        <carbon.identity.package.import.version.range>[5.0.0, 8.0.0)</carbon.identity.package.import.version.range>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
     </properties>
 </project>

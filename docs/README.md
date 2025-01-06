@@ -52,6 +52,32 @@ configurations to the ```<IS-HOME>/repository/conf/log4j2.properties``` file.
         - PRIMARY - evidentRequestID
     - Check _Supported by Default_ option.
     ![Add Evident ID Claim](img/add-evident-id-claim.png "Add Evident ID Claim")
+
+Note : If you are using Identity server 7.0 or higher use the below curl to add the identity claim.
+
+```
+    curl --location '<server-url>/t/<tenant-domain>/api/server/v1/claim-dialects/local/claims' \
+    --header 'accept: application/json' \
+    --header 'authorization: Basic <Base 64 encoded username:password>' \
+    --header 'Content-Type: application/json' \
+    --data '{
+    "claimURI": "http://wso2.org/claims/identity/evidentRequestID",
+    "description": "Evident Request ID",
+    "displayOrder": 0,
+    "displayName": "Evident Request ID",
+    "readOnly": false,
+    "regEx": "",
+    "required": false,
+    "supportedByDefault": true,
+    "attributeMapping": [
+    {
+    "mappedAttribute": "iproovEnrolled",
+    "userstore": "PRIMARY"
+    }
+    ]
+    }'
+```
+
 4. Click on **Resident** under **Identity Providers** section.
 5. Expand the **Account Management Policies** and a new section named **Evident Identity Verification** should be
  present.
