@@ -8,6 +8,12 @@
     "labels": [],
     "releases": [
         {
+            "tagName": " v1.0.6",
+            "products": [
+                "IS 7.1.0"
+            ]
+        },
+        {
             "tagName": "v1.0.0",
             "products": [
                 "IS 6.0.0",
