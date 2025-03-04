@@ -26,7 +26,7 @@
 
     <groupId>org.wso2.carbon.identity.verification</groupId>
     <artifactId>org.wso2.carbon.identity.verification.evident</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.9-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon Identity Verification - Evident ID</name>
 
@@ -131,7 +131,7 @@
         <developerConnection>
             scm:git:https://github.com/wso2-extensions/identity-verification-evident
         </developerConnection>
-        <tag>v1.0.8</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <build>
